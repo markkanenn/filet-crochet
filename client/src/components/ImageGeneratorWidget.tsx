@@ -134,11 +134,11 @@ export default function ImageGeneratorWidget({
       {/* Widget Header */}
       <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 text-white">
         <h2 className={`font-semibold flex items-center gap-2 ${compact ? 'text-lg' : 'text-xl'}`}>
-          <Sparkles className="w-5 h-5" />
-          {compact ? "AI Generator" : "AI Image Generator"}
+          <Search className="w-5 h-5" />
+          {compact ? "Image Search" : "Image Search Widget"}
         </h2>
         {!compact && (
-          <p className="text-blue-100 mt-1">Generate images from your text descriptions</p>
+          <p className="text-blue-100 mt-1">Search for images by name and year</p>
         )}
       </div>
 
@@ -290,7 +290,7 @@ export default function ImageGeneratorWidget({
       {config.showFooter && (
         <div className="bg-gray-50 dark:bg-gray-800 px-6 py-4 border-t border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
-            <span>Powered by AI Image Generator</span>
+            <span>Powered by Image Search Widget</span>
             {showEmbedButton && onShowEmbed && (
               <Button
                 variant="ghost"
