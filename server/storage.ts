@@ -9,6 +9,7 @@ export interface IStorage {
   getAllImages(): Promise<Image[]>;
   searchImages(query: string): Promise<Image[]>;
   createImage(image: InsertImage): Promise<Image>;
+  generatePattern(digits: string): Promise<Image>;
 }
 
 export class MemStorage implements IStorage {
@@ -27,59 +28,136 @@ export class MemStorage implements IStorage {
     this.initializeSampleImages();
   }
 
-  private async initializeSampleImages() {
-    const sampleImages: InsertImage[] = [
-      {
-        url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400",
-        alt: "John Smith - 2023",
-        tags: ["john", "smith", "2023", "johnsmith", "johnsmith2023"]
-      },
-      {
-        url: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400",
-        alt: "Mary Johnson - 2022",
-        tags: ["mary", "johnson", "2022", "maryjohnson", "maryjohnson2022"]
-      },
-      {
-        url: "https://images.unsplash.com/photo-1505142468610-359e7d316be0?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400",
-        alt: "David Wilson - 2021",
-        tags: ["david", "wilson", "2021", "davidwilson", "davidwilson2021"]
-      },
-      {
-        url: "https://images.unsplash.com/photo-1547036967-23d11aacaee0?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400",
-        alt: "Sarah Brown - 2024",
-        tags: ["sarah", "brown", "2024", "sarahbrown", "sarahbrown2024"]
-      },
-      {
-        url: "https://images.unsplash.com/photo-1541961017774-22349e4a1262?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400",
-        alt: "Michael Davis - 2020",
-        tags: ["michael", "davis", "2020", "michaeldavis", "michaeldavis2020"]
-      },
-      {
-        url: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400",
-        alt: "Jennifer Garcia - 2019",
-        tags: ["jennifer", "garcia", "2019", "jennifergarcia", "jennifergarcia2019"]
-      },
-      {
-        url: "https://images.unsplash.com/photo-1518837695005-2083093ee35b?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400",
-        alt: "Robert Miller - 2023",
-        tags: ["robert", "miller", "2023", "robertmiller", "robertmiller2023"]
-      },
-      {
-        url: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400",
-        alt: "Lisa Anderson - 2022",
-        tags: ["lisa", "anderson", "2022", "lisaanderson", "lisaanderson2022"]
-      },
-      {
-        url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400",
-        alt: "James Taylor - 2021",
-        tags: ["james", "taylor", "2021", "jamestaylor", "jamestaylor2021"]
-      },
-      {
-        url: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400",
-        alt: "Emily Thomas - 2024",
-        tags: ["emily", "thomas", "2024", "emilythomas", "emilythomas2024"]
+  private generateDigitPattern(digit: string): string {
+    // Generate SVG pattern for filet crochet - black squares represent solid stitches, white squares represent open spaces
+    const patterns: { [key: string]: string[][] } = {
+      '0': [
+        ['█','█','█','█','█'],
+        ['█','░','░','░','█'],
+        ['█','░','░','░','█'],
+        ['█','░','░','░','█'],
+        ['█','░','░','░','█'],
+        ['█','░','░','░','█'],
+        ['█','█','█','█','█']
+      ],
+      '1': [
+        ['░','░','█','░','░'],
+        ['░','█','█','░','░'],
+        ['░','░','█','░','░'],
+        ['░','░','█','░','░'],
+        ['░','░','█','░','░'],
+        ['░','░','█','░','░'],
+        ['█','█','█','█','█']
+      ],
+      '2': [
+        ['█','█','█','█','█'],
+        ['░','░','░','░','█'],
+        ['░','░','░','░','█'],
+        ['█','█','█','█','█'],
+        ['█','░','░','░','░'],
+        ['█','░','░','░','░'],
+        ['█','█','█','█','█']
+      ],
+      '3': [
+        ['█','█','█','█','█'],
+        ['░','░','░','░','█'],
+        ['░','░','░','░','█'],
+        ['█','█','█','█','█'],
+        ['░','░','░','░','█'],
+        ['░','░','░','░','█'],
+        ['█','█','█','█','█']
+      ],
+      '4': [
+        ['█','░','░','░','█'],
+        ['█','░','░','░','█'],
+        ['█','░','░','░','█'],
+        ['█','█','█','█','█'],
+        ['░','░','░','░','█'],
+        ['░','░','░','░','█'],
+        ['░','░','░','░','█']
+      ],
+      '5': [
+        ['█','█','█','█','█'],
+        ['█','░','░','░','░'],
+        ['█','░','░','░','░'],
+        ['█','█','█','█','█'],
+        ['░','░','░','░','█'],
+        ['░','░','░','░','█'],
+        ['█','█','█','█','█']
+      ],
+      '6': [
+        ['█','█','█','█','█'],
+        ['█','░','░','░','░'],
+        ['█','░','░','░','░'],
+        ['█','█','█','█','█'],
+        ['█','░','░','░','█'],
+        ['█','░','░','░','█'],
+        ['█','█','█','█','█']
+      ],
+      '7': [
+        ['█','█','█','█','█'],
+        ['░','░','░','░','█'],
+        ['░','░','░','░','█'],
+        ['░','░','░','█','░'],
+        ['░','░','█','░','░'],
+        ['░','█','░','░','░'],
+        ['█','░','░','░','░']
+      ],
+      '8': [
+        ['█','█','█','█','█'],
+        ['█','░','░','░','█'],
+        ['█','░','░','░','█'],
+        ['█','█','█','█','█'],
+        ['█','░','░','░','█'],
+        ['█','░','░','░','█'],
+        ['█','█','█','█','█']
+      ],
+      '9': [
+        ['█','█','█','█','█'],
+        ['█','░','░','░','█'],
+        ['█','░','░','░','█'],
+        ['█','█','█','█','█'],
+        ['░','░','░','░','█'],
+        ['░','░','░','░','█'],
+        ['█','█','█','█','█']
+      ]
+    };
+
+    const pattern = patterns[digit] || patterns['0'];
+    const cellSize = 20;
+    const width = pattern[0].length * cellSize;
+    const height = pattern.length * cellSize;
+
+    let svg = `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">`;
+    
+    for (let row = 0; row < pattern.length; row++) {
+      for (let col = 0; col < pattern[row].length; col++) {
+        const x = col * cellSize;
+        const y = row * cellSize;
+        const fill = pattern[row][col] === '█' ? '#000000' : '#ffffff';
+        const stroke = '#cccccc';
+        
+        svg += `<rect x="${x}" y="${y}" width="${cellSize}" height="${cellSize}" fill="${fill}" stroke="${stroke}" stroke-width="1"/>`;
       }
-    ];
+    }
+    
+    svg += '</svg>';
+    return `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`;
+  }
+
+  private async initializeSampleImages() {
+    const sampleImages: InsertImage[] = [];
+    
+    // Create individual digit patterns
+    for (let i = 0; i <= 9; i++) {
+      const digit = i.toString();
+      const pattern = this.generateDigitPattern(digit);
+      sampleImages.push({
+        url: pattern,
+        alt: `Filet crochet pattern for digit ${digit}`,
+        tags: [digit, `digit${digit}`, 'filet', 'crochet', 'pattern']
+      });
+    }
 
     for (const imageData of sampleImages) {
       await this.createImage(imageData);
@@ -157,6 +235,174 @@ export class MemStorage implements IStorage {
     const image: Image = { ...insertImage, id };
     this.images.set(id, image);
     return image;
+  }
+
+  async generatePattern(digits: string): Promise<Image> {
+    // Only allow numeric digits
+    const cleanDigits = digits.replace(/[^0-9]/g, '');
+    if (!cleanDigits) {
+      throw new Error('No valid digits provided');
+    }
+
+    // Generate combined pattern
+    const combinedPattern = this.generateCombinedPattern(cleanDigits);
+    
+    const image: Image = {
+      id: this.currentImageId++,
+      url: combinedPattern,
+      alt: `Filet crochet pattern for "${cleanDigits}"`,
+      tags: [cleanDigits, 'combined', 'filet', 'crochet', 'pattern', ...cleanDigits.split('')]
+    };
+
+    this.images.set(image.id, image);
+    return image;
+  }
+
+  private generateCombinedPattern(digits: string): string {
+    const patterns: { [key: string]: string[][] } = {
+      '0': [
+        ['█','█','█','█','█'],
+        ['█','░','░','░','█'],
+        ['█','░','░','░','█'],
+        ['█','░','░','░','█'],
+        ['█','░','░','░','█'],
+        ['█','░','░','░','█'],
+        ['█','█','█','█','█']
+      ],
+      '1': [
+        ['░','░','█','░','░'],
+        ['░','█','█','░','░'],
+        ['░','░','█','░','░'],
+        ['░','░','█','░','░'],
+        ['░','░','█','░','░'],
+        ['░','░','█','░','░'],
+        ['█','█','█','█','█']
+      ],
+      '2': [
+        ['█','█','█','█','█'],
+        ['░','░','░','░','█'],
+        ['░','░','░','░','█'],
+        ['█','█','█','█','█'],
+        ['█','░','░','░','░'],
+        ['█','░','░','░','░'],
+        ['█','█','█','█','█']
+      ],
+      '3': [
+        ['█','█','█','█','█'],
+        ['░','░','░','░','█'],
+        ['░','░','░','░','█'],
+        ['█','█','█','█','█'],
+        ['░','░','░','░','█'],
+        ['░','░','░','░','█'],
+        ['█','█','█','█','█']
+      ],
+      '4': [
+        ['█','░','░','░','█'],
+        ['█','░','░','░','█'],
+        ['█','░','░','░','█'],
+        ['█','█','█','█','█'],
+        ['░','░','░','░','█'],
+        ['░','░','░','░','█'],
+        ['░','░','░','░','█']
+      ],
+      '5': [
+        ['█','█','█','█','█'],
+        ['█','░','░','░','░'],
+        ['█','░','░','░','░'],
+        ['█','█','█','█','█'],
+        ['░','░','░','░','█'],
+        ['░','░','░','░','█'],
+        ['█','█','█','█','█']
+      ],
+      '6': [
+        ['█','█','█','█','█'],
+        ['█','░','░','░','░'],
+        ['█','░','░','░','░'],
+        ['█','█','█','█','█'],
+        ['█','░','░','░','█'],
+        ['█','░','░','░','█'],
+        ['█','█','█','█','█']
+      ],
+      '7': [
+        ['█','█','█','█','█'],
+        ['░','░','░','░','█'],
+        ['░','░','░','░','█'],
+        ['░','░','░','█','░'],
+        ['░','░','█','░','░'],
+        ['░','█','░','░','░'],
+        ['█','░','░','░','░']
+      ],
+      '8': [
+        ['█','█','█','█','█'],
+        ['█','░','░','░','█'],
+        ['█','░','░','░','█'],
+        ['█','█','█','█','█'],
+        ['█','░','░','░','█'],
+        ['█','░','░','░','█'],
+        ['█','█','█','█','█']
+      ],
+      '9': [
+        ['█','█','█','█','█'],
+        ['█','░','░','░','█'],
+        ['█','░','░','░','█'],
+        ['█','█','█','█','█'],
+        ['░','░','░','░','█'],
+        ['░','░','░','░','█'],
+        ['█','█','█','█','█']
+      ]
+    };
+
+    // Combine patterns horizontally with 1 column spacing
+    const digitPatterns = digits.split('').map(digit => patterns[digit] || patterns['0']);
+    const height = 7;
+    const digitWidth = 5;
+    const spacing = 1;
+    const totalWidth = digitPatterns.length * digitWidth + (digitPatterns.length - 1) * spacing;
+    
+    const combinedPattern: string[][] = [];
+    
+    for (let row = 0; row < height; row++) {
+      const combinedRow: string[] = [];
+      
+      for (let digitIndex = 0; digitIndex < digitPatterns.length; digitIndex++) {
+        const digitPattern = digitPatterns[digitIndex];
+        
+        // Add digit pattern
+        for (let col = 0; col < digitWidth; col++) {
+          combinedRow.push(digitPattern[row][col]);
+        }
+        
+        // Add spacing between digits (except after last digit)
+        if (digitIndex < digitPatterns.length - 1) {
+          for (let s = 0; s < spacing; s++) {
+            combinedRow.push('░');
+          }
+        }
+      }
+      
+      combinedPattern.push(combinedRow);
+    }
+
+    // Generate SVG
+    const cellSize = 20;
+    const width = totalWidth * cellSize;
+    const svgHeight = height * cellSize;
+
+    let svg = `<svg width="${width}" height="${svgHeight}" xmlns="http://www.w3.org/2000/svg">`;
+    
+    for (let row = 0; row < combinedPattern.length; row++) {
+      for (let col = 0; col < combinedPattern[row].length; col++) {
+        const x = col * cellSize;
+        const y = row * cellSize;
+        const fill = combinedPattern[row][col] === '█' ? '#000000' : '#ffffff';
+        const stroke = '#cccccc';
+        
+        svg += `<rect x="${x}" y="${y}" width="${cellSize}" height="${cellSize}" fill="${fill}" stroke="${stroke}" stroke-width="1"/>`;
+      }
+    }
+    
+    svg += '</svg>';
+    return `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`;
   }
 }
 

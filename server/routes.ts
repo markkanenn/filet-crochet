@@ -4,7 +4,23 @@ import { storage } from "./storage";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Search images endpoint
+  // Generate pattern endpoint
+  app.post("/api/pattern/generate", async (req, res) => {
+    try {
+      const { digits } = req.body;
+      if (!digits || typeof digits !== 'string') {
+        return res.status(400).json({ error: "Digits required" });
+      }
+      
+      const pattern = await storage.generatePattern(digits);
+      res.json({ pattern });
+    } catch (error) {
+      console.error("Error generating pattern:", error);
+      res.status(500).json({ error: "Failed to generate pattern" });
+    }
+  });
+
+  // Search images endpoint (for individual digits)
   app.get("/api/images/search", async (req, res) => {
     try {
       const query = req.query.q as string || "";
