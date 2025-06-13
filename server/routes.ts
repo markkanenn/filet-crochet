@@ -7,16 +7,82 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Generate pattern endpoint
   app.post("/api/pattern/generate", async (req, res) => {
     try {
-      const { digits } = req.body;
+      const { digits, patternSetId, gauge } = req.body;
       if (!digits || typeof digits !== 'string') {
         return res.status(400).json({ error: "Digits required" });
       }
       
-      const pattern = await storage.generatePattern(digits);
+      const pattern = await storage.generatePattern(digits, patternSetId, gauge);
       res.json({ pattern });
     } catch (error) {
       console.error("Error generating pattern:", error);
       res.status(500).json({ error: "Failed to generate pattern" });
+    }
+  });
+
+  // Get all digit patterns
+  app.get("/api/digit-patterns", async (req, res) => {
+    try {
+      const patterns = await storage.getAllDigitPatterns();
+      res.json({ patterns });
+    } catch (error) {
+      console.error("Error fetching digit patterns:", error);
+      res.status(500).json({ error: "Failed to fetch digit patterns" });
+    }
+  });
+
+  // Get digit patterns by set
+  app.get("/api/digit-patterns/set/:isDefault", async (req, res) => {
+    try {
+      const isDefault = req.params.isDefault === 'true';
+      const patterns = await storage.getDigitPatternsBySet(isDefault);
+      res.json({ patterns });
+    } catch (error) {
+      console.error("Error fetching digit patterns:", error);
+      res.status(500).json({ error: "Failed to fetch digit patterns" });
+    }
+  });
+
+  // Create custom digit pattern
+  app.post("/api/digit-patterns", async (req, res) => {
+    try {
+      const { name, description, digit, pattern, width, height } = req.body;
+      
+      if (!name || !digit || !pattern || !width || !height) {
+        return res.status(400).json({ error: "Missing required fields" });
+      }
+
+      const digitPattern = await storage.createDigitPattern({
+        name,
+        description,
+        digit,
+        pattern: JSON.stringify(pattern),
+        width,
+        height,
+        isDefault: false
+      });
+
+      res.json({ pattern: digitPattern });
+    } catch (error) {
+      console.error("Error creating digit pattern:", error);
+      res.status(500).json({ error: "Failed to create digit pattern" });
+    }
+  });
+
+  // Delete custom digit pattern
+  app.delete("/api/digit-patterns/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const success = await storage.deleteDigitPattern(id);
+      
+      if (success) {
+        res.json({ success: true });
+      } else {
+        res.status(404).json({ error: "Pattern not found" });
+      }
+    } catch (error) {
+      console.error("Error deleting digit pattern:", error);
+      res.status(500).json({ error: "Failed to delete digit pattern" });
     }
   });
 

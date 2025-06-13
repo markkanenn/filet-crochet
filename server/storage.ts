@@ -371,7 +371,16 @@ export class MemStorage implements IStorage {
 
   async createDigitPattern(insertPattern: InsertDigitPattern): Promise<DigitPattern> {
     const id = this.currentDigitPatternId++;
-    const pattern: DigitPattern = { ...insertPattern, id };
+    const pattern: DigitPattern = { 
+      id,
+      name: insertPattern.name,
+      description: insertPattern.description ?? null,
+      digit: insertPattern.digit,
+      pattern: insertPattern.pattern,
+      width: insertPattern.width,
+      height: insertPattern.height,
+      isDefault: insertPattern.isDefault ?? false
+    };
     this.digitPatterns.set(id, pattern);
     return pattern;
   }
@@ -406,34 +415,201 @@ export class MemStorage implements IStorage {
     return image;
   }
 
-  // Digit pattern management methods
-  async getDigitPattern(id: number): Promise<DigitPattern | undefined> {
-    return this.digitPatterns.get(id);
-  }
-
-  async getAllDigitPatterns(): Promise<DigitPattern[]> {
-    return Array.from(this.digitPatterns.values());
-  }
-
-  async getDigitPatternsBySet(isDefault: boolean): Promise<DigitPattern[]> {
-    return Array.from(this.digitPatterns.values()).filter(pattern => pattern.isDefault === isDefault);
-  }
-
-  async createDigitPattern(insertPattern: InsertDigitPattern): Promise<DigitPattern> {
-    const id = this.currentDigitPatternId++;
-    const pattern: DigitPattern = { ...insertPattern, id };
-    this.digitPatterns.set(id, pattern);
-    return pattern;
-  }
-
-  async deleteDigitPattern(id: number): Promise<boolean> {
-    return this.digitPatterns.delete(id);
-  }
-
   private async getCustomDigitPatterns(patternSetId: number): Promise<DigitPattern[]> {
     // For simplicity, return all non-default patterns
     // In a real app, you'd filter by pattern set ID
     return this.getDigitPatternsBySet(false);
+  }
+
+  private generateCombinedPatternFromCustom(
+    digits: string, 
+    patterns: DigitPattern[], 
+    gauge?: { stitchesPerInch: number; rowsPerInch: number }
+  ): string {
+    // Create a map of digit to pattern for quick lookup
+    const patternMap: { [key: string]: string[][] } = {};
+    
+    for (const pattern of patterns) {
+      patternMap[pattern.digit] = JSON.parse(pattern.pattern);
+    }
+    
+    // Fall back to default patterns if custom ones are missing
+    const defaultPatterns = this.getDefaultPatterns();
+    
+    // Combine patterns horizontally with spacing
+    const digitPatterns = digits.split('').map(digit => 
+      patternMap[digit] || defaultPatterns[digit] || defaultPatterns['0']
+    );
+    
+    let baseHeight = Math.max(...digitPatterns.map(p => p.length));
+    let baseDigitWidth = Math.max(...digitPatterns.map(p => p[0] ? p[0].length : 5));
+    const spacing = 1;
+    
+    // Apply gauge scaling if provided
+    let scaleX = 1;
+    let scaleY = 1;
+    
+    if (gauge) {
+      // Standard gauge is typically 4 stitches per inch
+      const standardStitchesPerInch = 4;
+      const standardRowsPerInch = 4;
+      
+      scaleX = Math.round(gauge.stitchesPerInch / standardStitchesPerInch);
+      scaleY = Math.round(gauge.rowsPerInch / standardRowsPerInch);
+      
+      // Ensure minimum scale of 1
+      scaleX = Math.max(1, scaleX);
+      scaleY = Math.max(1, scaleY);
+    }
+    
+    const scaledHeight = baseHeight * scaleY;
+    const scaledDigitWidth = baseDigitWidth * scaleX;
+    const totalWidth = digitPatterns.length * scaledDigitWidth + (digitPatterns.length - 1) * spacing * scaleX;
+    
+    const combinedPattern: string[][] = [];
+    
+    for (let row = 0; row < scaledHeight; row++) {
+      const combinedRow: string[] = [];
+      
+      for (let digitIndex = 0; digitIndex < digitPatterns.length; digitIndex++) {
+        const digitPattern = digitPatterns[digitIndex];
+        const sourceRow = Math.floor(row / scaleY);
+        
+        // Add scaled digit pattern
+        for (let col = 0; col < scaledDigitWidth; col++) {
+          const sourceCol = Math.floor(col / scaleX);
+          const cell = digitPattern[sourceRow] && digitPattern[sourceRow][sourceCol] 
+            ? digitPattern[sourceRow][sourceCol] 
+            : '░';
+          combinedRow.push(cell);
+        }
+        
+        // Add spacing between digits (except after last digit)
+        if (digitIndex < digitPatterns.length - 1) {
+          for (let s = 0; s < spacing * scaleX; s++) {
+            combinedRow.push('░');
+          }
+        }
+      }
+      
+      combinedPattern.push(combinedRow);
+    }
+
+    // Generate SVG with gauge information
+    const cellSize = 20;
+    const width = totalWidth * cellSize;
+    const svgHeight = scaledHeight * cellSize;
+
+    let svg = `<svg width="${width}" height="${svgHeight}" xmlns="http://www.w3.org/2000/svg">`;
+    
+    for (let row = 0; row < combinedPattern.length; row++) {
+      for (let col = 0; col < combinedPattern[row].length; col++) {
+        const x = col * cellSize;
+        const y = row * cellSize;
+        const fill = combinedPattern[row][col] === '█' ? '#000000' : '#ffffff';
+        const stroke = '#cccccc';
+        
+        svg += `<rect x="${x}" y="${y}" width="${cellSize}" height="${cellSize}" fill="${fill}" stroke="${stroke}" stroke-width="1"/>`;
+      }
+    }
+    
+    svg += '</svg>';
+    return `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`;
+  }
+
+  private getDefaultPatterns(): { [key: string]: string[][] } {
+    return {
+      '0': [
+        ['█','█','█','█','█'],
+        ['█','░','░','░','█'],
+        ['█','░','░','░','█'],
+        ['█','░','░','░','█'],
+        ['█','░','░','░','█'],
+        ['█','░','░','░','█'],
+        ['█','█','█','█','█']
+      ],
+      '1': [
+        ['░','░','█','░','░'],
+        ['░','█','█','░','░'],
+        ['░','░','█','░','░'],
+        ['░','░','█','░','░'],
+        ['░','░','█','░','░'],
+        ['░','░','█','░','░'],
+        ['█','█','█','█','█']
+      ],
+      '2': [
+        ['█','█','█','█','█'],
+        ['░','░','░','░','█'],
+        ['░','░','░','░','█'],
+        ['█','█','█','█','█'],
+        ['█','░','░','░','░'],
+        ['█','░','░','░','░'],
+        ['█','█','█','█','█']
+      ],
+      '3': [
+        ['█','█','█','█','█'],
+        ['░','░','░','░','█'],
+        ['░','░','░','░','█'],
+        ['█','█','█','█','█'],
+        ['░','░','░','░','█'],
+        ['░','░','░','░','█'],
+        ['█','█','█','█','█']
+      ],
+      '4': [
+        ['█','░','░','░','█'],
+        ['█','░','░','░','█'],
+        ['█','░','░','░','█'],
+        ['█','█','█','█','█'],
+        ['░','░','░','░','█'],
+        ['░','░','░','░','█'],
+        ['░','░','░','░','█']
+      ],
+      '5': [
+        ['█','█','█','█','█'],
+        ['█','░','░','░','░'],
+        ['█','░','░','░','░'],
+        ['█','█','█','█','█'],
+        ['░','░','░','░','█'],
+        ['░','░','░','░','█'],
+        ['█','█','█','█','█']
+      ],
+      '6': [
+        ['█','█','█','█','█'],
+        ['█','░','░','░','░'],
+        ['█','░','░','░','░'],
+        ['█','█','█','█','█'],
+        ['█','░','░','░','█'],
+        ['█','░','░','░','█'],
+        ['█','█','█','█','█']
+      ],
+      '7': [
+        ['█','█','█','█','█'],
+        ['░','░','░','░','█'],
+        ['░','░','░','░','█'],
+        ['░','░','░','█','░'],
+        ['░','░','█','░','░'],
+        ['░','█','░','░','░'],
+        ['█','░','░','░','░']
+      ],
+      '8': [
+        ['█','█','█','█','█'],
+        ['█','░','░','░','█'],
+        ['█','░','░','░','█'],
+        ['█','█','█','█','█'],
+        ['█','░','░','░','█'],
+        ['█','░','░','░','█'],
+        ['█','█','█','█','█']
+      ],
+      '9': [
+        ['█','█','█','█','█'],
+        ['█','░','░','░','█'],
+        ['█','░','░','░','█'],
+        ['█','█','█','█','█'],
+        ['░','░','░','░','█'],
+        ['░','░','░','░','█'],
+        ['█','█','█','█','█']
+      ]
+    };
   }
 
   private generateCombinedPattern(digits: string): string {

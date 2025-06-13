@@ -41,11 +41,17 @@ export default function ImageGeneratorWidget({
   const [query, setQuery] = useState("");
   const [generatedPattern, setGeneratedPattern] = useState<Image | null>(null);
   const [hasGenerated, setHasGenerated] = useState(false);
+  const [gauge, setGauge] = useState<{ stitchesPerInch: number; rowsPerInch: number } | undefined>();
+  const [selectedPatternSet, setSelectedPatternSet] = useState<number | undefined>();
   const { toast } = useToast();
 
   const generatePatternMutation = useMutation({
     mutationFn: async (digits: string) => {
-      const response = await apiRequest("POST", "/api/pattern/generate", { digits });
+      const response = await apiRequest("POST", "/api/pattern/generate", { 
+        digits, 
+        patternSetId: selectedPatternSet,
+        gauge 
+      });
       return response.json();
     },
     onSuccess: (data) => {
