@@ -3,6 +3,7 @@ import ImageGeneratorWidget from "@/components/ImageGeneratorWidget";
 import EmbedCodeGenerator from "@/components/EmbedCodeGenerator";
 import GaugeCalculator from "@/components/GaugeCalculator";
 import PatternEditor from "@/components/PatternEditor";
+import ImageUploader from "@/components/ImageUploader";
 
 export default function WidgetPage() {
   const [embedConfig, setEmbedConfig] = useState({
@@ -52,6 +53,13 @@ export default function WidgetPage() {
                 <GaugeCalculator 
                   onGaugeChange={(gauge) => {
                     // Force widget to re-render with new gauge settings
+                    setRefreshKey(prev => prev + 1);
+                  }}
+                />
+                
+                <ImageUploader 
+                  onPatternCreated={() => {
+                    // Refresh widget when new pattern is created from image
                     setRefreshKey(prev => prev + 1);
                   }}
                 />
