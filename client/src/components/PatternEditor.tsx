@@ -213,31 +213,30 @@ export default function PatternEditor({ onPatternCreated }: PatternEditorProps) 
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 Click squares to toggle between solid (█) and open (░) stitches
               </p>
-              <div 
-                className="inline-block border border-gray-300 dark:border-gray-600 rounded"
-                style={{ 
-                  display: 'grid', 
-                  gridTemplateColumns: `repeat(${gridSize.width}, 1fr)`,
-                  gap: '1px',
-                  backgroundColor: '#ccc'
-                }}
-              >
-                {pattern.map((row, rowIndex) =>
-                  row.map((cell, colIndex) => (
-                    <button
-                      key={`${rowIndex}-${colIndex}`}
-                      onClick={() => toggleCell(rowIndex, colIndex)}
-                      className={`w-6 h-6 text-xs font-mono border-0 transition-colors ${
-                        cell === '█'
-                          ? 'bg-black text-white hover:bg-gray-800'
-                          : 'bg-white text-black hover:bg-gray-100'
-                      }`}
-                      title={`${cell === '█' ? 'Solid' : 'Open'} stitch at ${rowIndex},${colIndex}`}
-                    >
-                      {cell}
-                    </button>
-                  ))
-                )}
+              <div className="flex justify-center">
+                <div 
+                  className="inline-grid border border-gray-300 dark:border-gray-600 rounded gap-px bg-gray-300"
+                  style={{ 
+                    gridTemplateColumns: `repeat(${gridSize.width}, minmax(0, 1fr))`
+                  }}
+                >
+                  {pattern.map((row, rowIndex) =>
+                    row.map((cell, colIndex) => (
+                      <button
+                        key={`${rowIndex}-${colIndex}`}
+                        onClick={() => toggleCell(rowIndex, colIndex)}
+                        className={`w-6 h-6 text-xs font-mono border-0 transition-colors flex items-center justify-center ${
+                          cell === '█'
+                            ? 'bg-black text-white hover:bg-gray-800'
+                            : 'bg-white text-black hover:bg-gray-100'
+                        }`}
+                        title={`${cell === '█' ? 'Solid' : 'Open'} stitch at row ${rowIndex}, col ${colIndex}`}
+                      >
+                        {cell}
+                      </button>
+                    ))
+                  )}
+                </div>
               </div>
             </div>
           )}

@@ -237,30 +237,29 @@ export default function ImageUploader({ onPatternCreated }: Props) {
           <div className="space-y-2">
             <Label>Generated Pattern Preview</Label>
             <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
-              <div 
-                className="inline-block border border-gray-300 dark:border-gray-600 rounded mx-auto"
-                style={{ 
-                  display: 'grid', 
-                  gridTemplateColumns: `repeat(${processedPattern[0].length}, 1fr)`,
-                  gap: '1px',
-                  backgroundColor: '#ccc'
-                }}
-              >
-                {processedPattern.map((row, rowIndex) =>
-                  row.map((cell, colIndex) => (
-                    <div
-                      key={`${rowIndex}-${colIndex}`}
-                      className={`w-4 h-4 text-xs font-mono flex items-center justify-center ${
-                        cell === '█'
-                          ? 'bg-black text-white'
-                          : 'bg-white text-black'
-                      }`}
-                      title={`${cell === '█' ? 'Solid' : 'Open'} stitch at ${rowIndex},${colIndex}`}
-                    >
-                      {cell}
-                    </div>
-                  ))
-                )}
+              <div className="flex justify-center">
+                <div 
+                  className="inline-grid border border-gray-300 dark:border-gray-600 rounded gap-px bg-gray-300"
+                  style={{ 
+                    gridTemplateColumns: `repeat(${processedPattern[0].length}, minmax(0, 1fr))`
+                  }}
+                >
+                  {processedPattern.map((row, rowIndex) =>
+                    row.map((cell, colIndex) => (
+                      <div
+                        key={`${rowIndex}-${colIndex}`}
+                        className={`w-6 h-6 text-xs font-mono flex items-center justify-center border-0 ${
+                          cell === '█'
+                            ? 'bg-black text-white'
+                            : 'bg-white text-black'
+                        }`}
+                        title={`${cell === '█' ? 'Solid' : 'Open'} stitch at row ${rowIndex}, col ${colIndex}`}
+                      >
+                        {cell}
+                      </div>
+                    ))
+                  )}
+                </div>
               </div>
               <p className="text-sm text-gray-600 dark:text-gray-400 mt-2 text-center">
                 Black squares = solid stitches, White squares = open spaces
