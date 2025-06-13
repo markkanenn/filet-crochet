@@ -1,6 +1,8 @@
 import { useState } from "react";
 import ImageGeneratorWidget from "@/components/ImageGeneratorWidget";
 import EmbedCodeGenerator from "@/components/EmbedCodeGenerator";
+import GaugeCalculator from "@/components/GaugeCalculator";
+import PatternEditor from "@/components/PatternEditor";
 
 export default function WidgetPage() {
   const [embedConfig, setEmbedConfig] = useState({
@@ -10,6 +12,7 @@ export default function WidgetPage() {
     showDownload: true,
     showFooter: true,
   });
+  const [refreshKey, setRefreshKey] = useState(0);
 
   return (
     <div className="bg-gray-100 min-h-screen">
@@ -25,27 +28,47 @@ export default function WidgetPage() {
         {/* Widget Demo Section */}
         <section className="space-y-8">
           <div className="text-center">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">Widget Demo</h2>
-            <p className="text-gray-600">See how the widget adapts to different container sizes</p>
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">Pattern Generator</h2>
+            <p className="text-gray-600">Create filet crochet patterns with custom gauge and digit styles</p>
           </div>
 
-          {/* Full Width Widget */}
+          {/* Main Widget with Advanced Features */}
           <div className="bg-white rounded-lg shadow-lg p-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Full Width Container</h3>
-            <div className="w-full max-w-4xl mx-auto">
-              <ImageGeneratorWidget 
-                config={embedConfig}
-                showEmbedButton={true}
-                onShowEmbed={() => {
-                  document.getElementById('embed-section')?.scrollIntoView({ behavior: 'smooth' });
-                }}
-              />
+            <div className="grid lg:grid-cols-3 gap-6">
+              {/* Pattern Generator Widget */}
+              <div className="lg:col-span-2">
+                <ImageGeneratorWidget 
+                  key={refreshKey}
+                  config={embedConfig}
+                  showEmbedButton={true}
+                  onShowEmbed={() => {
+                    document.getElementById('embed-section')?.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                />
+              </div>
+              
+              {/* Advanced Settings Sidebar */}
+              <div className="space-y-6">
+                <GaugeCalculator 
+                  onGaugeChange={(gauge) => {
+                    // Force widget to re-render with new gauge settings
+                    setRefreshKey(prev => prev + 1);
+                  }}
+                />
+                
+                <PatternEditor 
+                  onPatternCreated={() => {
+                    // Refresh widget when new pattern is created
+                    setRefreshKey(prev => prev + 1);
+                  }}
+                />
+              </div>
             </div>
           </div>
 
-          {/* Narrow Width Widget */}
+          {/* Compact Widget Demo */}
           <div className="bg-white rounded-lg shadow-lg p-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Narrow Container (Mobile View)</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Mobile/Compact View</h3>
             <div className="max-w-sm mx-auto">
               <ImageGeneratorWidget 
                 config={embedConfig}
