@@ -42,7 +42,7 @@ export default function ImageGeneratorWidget({
   const [hasSearched, setHasSearched] = useState(false);
   const { toast } = useToast();
 
-  const { data: searchResults, isLoading, error, refetch } = useQuery({
+  const { data: searchResults, isLoading, error, refetch } = useQuery<{ images: Image[]; count: number }>({
     queryKey: ['/api/images/search', query],
     enabled: false, // Only run when manually triggered
   });
@@ -149,11 +149,16 @@ export default function ImageGeneratorWidget({
           <div className="relative">
             <Input
               type="text"
-              placeholder={compact ? "Describe your image..." : "Describe the image you want to generate..."}
+              placeholder={compact ? "Enter name and year..." : "Enter name and year (e.g., John Smith 2023)"}
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              onChange={(e) => {
+                // Only allow letters, numbers, and spaces
+                const filteredValue = e.target.value.replace(/[^a-zA-Z0-9\s]/g, '');
+                setQuery(filteredValue);
+              }}
               onKeyPress={handleKeyPress}
               className="pr-12"
+              maxLength={50}
             />
             <Search className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
           </div>
@@ -166,12 +171,12 @@ export default function ImageGeneratorWidget({
             {isGenerating ? (
               <>
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                Generating...
+                Searching...
               </>
             ) : (
               <>
-                <Sparkles className="w-4 h-4 mr-2" />
-                {compact ? "Generate" : "Generate Images"}
+                <Search className="w-4 h-4 mr-2" />
+                {compact ? "Search" : "Search Images"}
               </>
             )}
           </Button>
@@ -181,7 +186,7 @@ export default function ImageGeneratorWidget({
         {isLoading && (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white">Generated Images</h3>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white">Search Results</h3>
             </div>
             <div className={`grid gap-4 ${compact ? 'grid-cols-2' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'}`}>
               {Array.from({ length: config.maxResults }).map((_, i) => (
@@ -195,7 +200,7 @@ export default function ImageGeneratorWidget({
           <Card className="bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 p-4">
             <div className="flex items-center text-red-800 dark:text-red-200">
               <AlertCircle className="w-4 h-4 mr-2" />
-              <span className="font-medium">Error generating images</span>
+              <span className="font-medium">Error searching images</span>
             </div>
             <p className="text-red-600 dark:text-red-300 text-sm mt-1">
               Failed to search images. Please try again.
@@ -206,7 +211,7 @@ export default function ImageGeneratorWidget({
         {displayImages.length > 0 && (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white">Generated Images</h3>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white">Search Results</h3>
               <span className="text-sm text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-full">
                 {displayImages.length} results
               </span>
@@ -262,7 +267,7 @@ export default function ImageGeneratorWidget({
             </div>
             <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No images found</h3>
             <p className="text-gray-600 dark:text-gray-400 max-w-sm mx-auto">
-              No images matched your description. Try different keywords or a more general search.
+              No images matched your search. Try entering a different name or year.
             </p>
           </div>
         )}
@@ -271,11 +276,11 @@ export default function ImageGeneratorWidget({
         {!hasSearched && !isLoading && (
           <div className="text-center py-12">
             <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Sparkles className="w-8 h-8 text-gray-400" />
+              <Search className="w-8 h-8 text-gray-400" />
             </div>
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No images generated yet</h3>
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Ready to search</h3>
             <p className="text-gray-600 dark:text-gray-400 max-w-sm mx-auto">
-              Enter a description above and click "Generate Images" to see AI-generated results from our database.
+              Enter a name and year above and click "Search Images" to find matching results from our database.
             </p>
           </div>
         )}

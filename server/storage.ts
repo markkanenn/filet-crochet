@@ -31,43 +31,53 @@ export class MemStorage implements IStorage {
     const sampleImages: InsertImage[] = [
       {
         url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400",
-        alt: "Mountain landscape with snow-capped peaks",
-        tags: ["mountain", "landscape", "nature", "snow", "alpine", "peaks", "scenic"]
+        alt: "John Smith - 2023",
+        tags: ["john", "smith", "2023", "johnsmith", "johnsmith2023"]
       },
       {
         url: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400",
-        alt: "Forest path with dappled sunlight",
-        tags: ["forest", "path", "trees", "nature", "green", "sunlight", "woods"]
+        alt: "Mary Johnson - 2022",
+        tags: ["mary", "johnson", "2022", "maryjohnson", "maryjohnson2022"]
       },
       {
         url: "https://images.unsplash.com/photo-1505142468610-359e7d316be0?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400",
-        alt: "Ocean waves crashing on rocks",
-        tags: ["ocean", "waves", "water", "blue", "coast", "rocks", "sea"]
+        alt: "David Wilson - 2021",
+        tags: ["david", "wilson", "2021", "davidwilson", "davidwilson2021"]
       },
       {
         url: "https://images.unsplash.com/photo-1547036967-23d11aacaee0?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400",
-        alt: "Desert dunes with golden sand",
-        tags: ["desert", "sand", "dunes", "golden", "landscape", "arid", "sahara"]
+        alt: "Sarah Brown - 2024",
+        tags: ["sarah", "brown", "2024", "sarahbrown", "sarahbrown2024"]
       },
       {
         url: "https://images.unsplash.com/photo-1541961017774-22349e4a1262?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400",
-        alt: "Abstract colorful geometric art",
-        tags: ["abstract", "colorful", "geometric", "art", "vibrant", "patterns", "modern"]
+        alt: "Michael Davis - 2020",
+        tags: ["michael", "davis", "2020", "michaeldavis", "michaeldavis2020"]
       },
       {
         url: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400",
-        alt: "City skyline at night",
-        tags: ["city", "skyline", "night", "lights", "urban", "buildings", "skyscrapers"]
+        alt: "Jennifer Garcia - 2019",
+        tags: ["jennifer", "garcia", "2019", "jennifergarcia", "jennifergarcia2019"]
       },
       {
         url: "https://images.unsplash.com/photo-1518837695005-2083093ee35b?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400",
-        alt: "Purple sunset over water",
-        tags: ["sunset", "purple", "water", "reflection", "evening", "peaceful", "twilight"]
+        alt: "Robert Miller - 2023",
+        tags: ["robert", "miller", "2023", "robertmiller", "robertmiller2023"]
       },
       {
-        url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400",
-        alt: "Tropical beach with palm trees",
-        tags: ["beach", "tropical", "palm", "trees", "paradise", "sand", "vacation"]
+        url: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400",
+        alt: "Lisa Anderson - 2022",
+        tags: ["lisa", "anderson", "2022", "lisaanderson", "lisaanderson2022"]
+      },
+      {
+        url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400",
+        alt: "James Taylor - 2021",
+        tags: ["james", "taylor", "2021", "jamestaylor", "jamestaylor2021"]
+      },
+      {
+        url: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400",
+        alt: "Emily Thomas - 2024",
+        tags: ["emily", "thomas", "2024", "emilythomas", "emilythomas2024"]
       }
     ];
 
