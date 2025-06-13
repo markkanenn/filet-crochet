@@ -1,4 +1,4 @@
-import { users, images, type User, type InsertUser, type Image, type InsertImage } from "@shared/schema";
+import { users, images, digitPatterns, type User, type InsertUser, type Image, type InsertImage, type DigitPattern, type InsertDigitPattern } from "@shared/schema";
 
 export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
@@ -9,23 +9,35 @@ export interface IStorage {
   getAllImages(): Promise<Image[]>;
   searchImages(query: string): Promise<Image[]>;
   createImage(image: InsertImage): Promise<Image>;
-  generatePattern(digits: string): Promise<Image>;
+  generatePattern(digits: string, patternSetId?: number, gauge?: { stitchesPerInch: number; rowsPerInch: number }): Promise<Image>;
+  
+  getDigitPattern(id: number): Promise<DigitPattern | undefined>;
+  getAllDigitPatterns(): Promise<DigitPattern[]>;
+  getDigitPatternsBySet(isDefault: boolean): Promise<DigitPattern[]>;
+  createDigitPattern(pattern: InsertDigitPattern): Promise<DigitPattern>;
+  deleteDigitPattern(id: number): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
   private users: Map<number, User>;
   private images: Map<number, Image>;
+  private digitPatterns: Map<number, DigitPattern>;
   currentUserId: number;
   currentImageId: number;
+  currentDigitPatternId: number;
 
   constructor() {
     this.users = new Map();
     this.images = new Map();
+    this.digitPatterns = new Map();
     this.currentUserId = 1;
     this.currentImageId = 1;
+    this.currentDigitPatternId = 1;
     
-    // Initialize with sample images
-    this.initializeSampleImages();
+    // Initialize with default digit patterns and sample images
+    this.initializeDefaultDigitPatterns().then(() => {
+      this.initializeSampleImages();
+    });
   }
 
   private generateDigitPattern(digit: string): string {
@@ -145,6 +157,113 @@ export class MemStorage implements IStorage {
     return `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`;
   }
 
+  private async initializeDefaultDigitPatterns() {
+    const defaultPatterns = {
+      '0': [
+        ['█','█','█','█','█'],
+        ['█','░','░','░','█'],
+        ['█','░','░','░','█'],
+        ['█','░','░','░','█'],
+        ['█','░','░','░','█'],
+        ['█','░','░','░','█'],
+        ['█','█','█','█','█']
+      ],
+      '1': [
+        ['░','░','█','░','░'],
+        ['░','█','█','░','░'],
+        ['░','░','█','░','░'],
+        ['░','░','█','░','░'],
+        ['░','░','█','░','░'],
+        ['░','░','█','░','░'],
+        ['█','█','█','█','█']
+      ],
+      '2': [
+        ['█','█','█','█','█'],
+        ['░','░','░','░','█'],
+        ['░','░','░','░','█'],
+        ['█','█','█','█','█'],
+        ['█','░','░','░','░'],
+        ['█','░','░','░','░'],
+        ['█','█','█','█','█']
+      ],
+      '3': [
+        ['█','█','█','█','█'],
+        ['░','░','░','░','█'],
+        ['░','░','░','░','█'],
+        ['█','█','█','█','█'],
+        ['░','░','░','░','█'],
+        ['░','░','░','░','█'],
+        ['█','█','█','█','█']
+      ],
+      '4': [
+        ['█','░','░','░','█'],
+        ['█','░','░','░','█'],
+        ['█','░','░','░','█'],
+        ['█','█','█','█','█'],
+        ['░','░','░','░','█'],
+        ['░','░','░','░','█'],
+        ['░','░','░','░','█']
+      ],
+      '5': [
+        ['█','█','█','█','█'],
+        ['█','░','░','░','░'],
+        ['█','░','░','░','░'],
+        ['█','█','█','█','█'],
+        ['░','░','░','░','█'],
+        ['░','░','░','░','█'],
+        ['█','█','█','█','█']
+      ],
+      '6': [
+        ['█','█','█','█','█'],
+        ['█','░','░','░','░'],
+        ['█','░','░','░','░'],
+        ['█','█','█','█','█'],
+        ['█','░','░','░','█'],
+        ['█','░','░','░','█'],
+        ['█','█','█','█','█']
+      ],
+      '7': [
+        ['█','█','█','█','█'],
+        ['░','░','░','░','█'],
+        ['░','░','░','░','█'],
+        ['░','░','░','█','░'],
+        ['░','░','█','░','░'],
+        ['░','█','░','░','░'],
+        ['█','░','░','░','░']
+      ],
+      '8': [
+        ['█','█','█','█','█'],
+        ['█','░','░','░','█'],
+        ['█','░','░','░','█'],
+        ['█','█','█','█','█'],
+        ['█','░','░','░','█'],
+        ['█','░','░','░','█'],
+        ['█','█','█','█','█']
+      ],
+      '9': [
+        ['█','█','█','█','█'],
+        ['█','░','░','░','█'],
+        ['█','░','░','░','█'],
+        ['█','█','█','█','█'],
+        ['░','░','░','░','█'],
+        ['░','░','░','░','█'],
+        ['█','█','█','█','█']
+      ]
+    };
+
+    for (const [digit, pattern] of Object.entries(defaultPatterns)) {
+      await this.createDigitPattern({
+        name: `Default ${digit}`,
+        description: `Default filet crochet pattern for digit ${digit}`,
+        digit: digit,
+        pattern: JSON.stringify(pattern),
+        width: 5,
+        height: 7,
+        isDefault: true
+      });
+    }
+  }
+
   private async initializeSampleImages() {
     const sampleImages: InsertImage[] = [];
     
@@ -237,15 +356,44 @@ export class MemStorage implements IStorage {
     return image;
   }
 
-  async generatePattern(digits: string): Promise<Image> {
+  // Digit pattern management methods
+  async getDigitPattern(id: number): Promise<DigitPattern | undefined> {
+    return this.digitPatterns.get(id);
+  }
+
+  async getAllDigitPatterns(): Promise<DigitPattern[]> {
+    return Array.from(this.digitPatterns.values());
+  }
+
+  async getDigitPatternsBySet(isDefault: boolean): Promise<DigitPattern[]> {
+    return Array.from(this.digitPatterns.values()).filter(pattern => pattern.isDefault === isDefault);
+  }
+
+  async createDigitPattern(insertPattern: InsertDigitPattern): Promise<DigitPattern> {
+    const id = this.currentDigitPatternId++;
+    const pattern: DigitPattern = { ...insertPattern, id };
+    this.digitPatterns.set(id, pattern);
+    return pattern;
+  }
+
+  async deleteDigitPattern(id: number): Promise<boolean> {
+    return this.digitPatterns.delete(id);
+  }
+
+  async generatePattern(digits: string, patternSetId?: number, gauge?: { stitchesPerInch: number; rowsPerInch: number }): Promise<Image> {
     // Only allow numeric digits
     const cleanDigits = digits.replace(/[^0-9]/g, '');
     if (!cleanDigits) {
       throw new Error('No valid digits provided');
     }
 
-    // Generate combined pattern
-    const combinedPattern = this.generateCombinedPattern(cleanDigits);
+    // Get patterns to use (custom or default)
+    const patterns = patternSetId ? 
+      await this.getCustomDigitPatterns(patternSetId) : 
+      await this.getDigitPatternsBySet(true);
+
+    // Generate combined pattern with gauge adjustment
+    const combinedPattern = this.generateCombinedPatternFromCustom(cleanDigits, patterns, gauge);
     
     const image: Image = {
       id: this.currentImageId++,
@@ -256,6 +404,36 @@ export class MemStorage implements IStorage {
 
     this.images.set(image.id, image);
     return image;
+  }
+
+  // Digit pattern management methods
+  async getDigitPattern(id: number): Promise<DigitPattern | undefined> {
+    return this.digitPatterns.get(id);
+  }
+
+  async getAllDigitPatterns(): Promise<DigitPattern[]> {
+    return Array.from(this.digitPatterns.values());
+  }
+
+  async getDigitPatternsBySet(isDefault: boolean): Promise<DigitPattern[]> {
+    return Array.from(this.digitPatterns.values()).filter(pattern => pattern.isDefault === isDefault);
+  }
+
+  async createDigitPattern(insertPattern: InsertDigitPattern): Promise<DigitPattern> {
+    const id = this.currentDigitPatternId++;
+    const pattern: DigitPattern = { ...insertPattern, id };
+    this.digitPatterns.set(id, pattern);
+    return pattern;
+  }
+
+  async deleteDigitPattern(id: number): Promise<boolean> {
+    return this.digitPatterns.delete(id);
+  }
+
+  private async getCustomDigitPatterns(patternSetId: number): Promise<DigitPattern[]> {
+    // For simplicity, return all non-default patterns
+    // In a real app, you'd filter by pattern set ID
+    return this.getDigitPatternsBySet(false);
   }
 
   private generateCombinedPattern(digits: string): string {
